@@ -370,6 +370,10 @@ PzBuffer::get_positions_of(const std::string &word) const {
   return (it != word_positions_.end()) ? &(it->second) : nullptr;
 }
 
+const std::string &PzStd::PzBuffer::get_raw_text() const noexcept {
+  return text;
+}
+
 // Metadata Access
 /** @brief Get total number of words. */
 ut64 PzBuffer::total_words() const noexcept {

@@ -1,5 +1,5 @@
 #include "NfaMatcher.hpp"
-#include "nfa.hpp"
+#include "Nfa.hpp"
 #include <chrono>
 #include <iomanip>
 #include <iostream>

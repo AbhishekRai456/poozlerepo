@@ -1,2 +1,10 @@
 .vscode/
 build/
+builddir/
+*.o
+*.a
+*.so
+poozle
+
+*.md
+!README.md

@@ -126,6 +126,7 @@ public:
   get_sorted_words() const noexcept; /** Get sorted unique words */
   const std::vector<ut64> *get_positions_of(
       const std::string &word) const; /** Get positions of a given word */
+  const std::string &get_raw_text() const noexcept;
 
   // MetaData Access Methods - To provide quick information about the buffer's
   // content

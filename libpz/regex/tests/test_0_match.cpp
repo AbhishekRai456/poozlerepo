@@ -1,7 +1,7 @@
 #include "NfaMatcher.hpp"
-#include "nfa_builder.hpp"
-#include "postfix.hpp"
-#include "tokenizer.hpp"
+#include "NfaBuilder.hpp"
+#include "RegexPostfix.hpp"
+#include "RegexTokenizer.hpp"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -26,7 +26,7 @@ void run_match_test(const TestCase &test) {
   try {
     Tokenizer tokenizer(test.pattern);
     auto tokens = tokenizer.tokenize();
-    auto postfix = PostfixConverter::convert(tokens);
+    auto postfix = Postfix::convert(tokens);
     NfaBuilder builder;
     State *start = builder.build(postfix);
     NfaMatcher matcher(start);

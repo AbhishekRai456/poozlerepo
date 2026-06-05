@@ -1,4 +1,8 @@
 #include <FMIndex.hpp>
+#include <NfaBuilder.hpp>     
+#include <NfaMatcher.hpp>     
+#include <RegexPostfix.hpp>   
+#include <RegexTokenizer.hpp> 
 #include <pz_analysis.hpp>
 #include <pz_buffer.hpp>
 #include <pz_core.hpp>
@@ -16,20 +20,13 @@ namespace PzStd {
  */
 bool PzAnalysisExact::analyze(const std::string &pattern,
                               std::vector<size_t> &results) {
-  PzBufferSPtr buffer = core_ ? core_->pz_buffer_sptr : nullptr;
-
-  // TODO : Use results
-  results.push_back(0); // To suppress warning
-
-  if (buffer == nullptr || pattern.empty()) {
-    PzError::report_error(PzErrorType::PZ_INVALID_INPUT,
-                          "Invalid buffer or empty pattern");
-    return false;
-  }
-
+  results.clear();
   try {
-    // TODO: Implement actual exact matching
-    return true;
+    auto positions = locate(pattern);
+    for (int pos : positions) {
+      results.push_back(static_cast<size_t>(pos));
+    }
+    return !results.empty();
   } catch (const std::exception &e) {
     PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
                           "Exact analysis failed: " + std::string(e.what()));
@@ -43,11 +40,11 @@ int PzAnalysisExact::count(const std::string &pattern) {
   if (buffer == nullptr || pattern.empty()) {
     PzError::report_error(PzErrorType::PZ_INVALID_INPUT,
                           "Invalid buffer or empty pattern");
-    return {};
+    return 0;
   }
 
   try {
-    FMIndex fm = buffer->fm_index;
+    FMIndex& fm = buffer->fm_index;
     return fm.count(pattern, pattern.size());
   } catch (const std::exception &e) {
     PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
@@ -66,7 +63,7 @@ std::vector<int> PzAnalysisExact::locate(const std::string &pattern) {
   }
 
   try {
-    FMIndex fm = buffer->fm_index;
+    FMIndex& fm = buffer->fm_index;
     return fm.locate(pattern);
   } catch (const std::exception &e) {
     PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
@@ -74,6 +71,10 @@ std::vector<int> PzAnalysisExact::locate(const std::string &pattern) {
     return {};
   }
 }
+
+// ── Shared helper: builds NFA matcher from a regex pattern string ─────────────
+// Defined as a lambda inside each function to keep it self-contained.
+// If you find yourself copying it a third time, extract it to a free function.
 
 /**
  * @brief Performs regex pattern search on the buffer.
@@ -84,24 +85,94 @@ std::vector<int> PzAnalysisExact::locate(const std::string &pattern) {
  */
 bool PzAnalysisRegex::analyze(const std::string &pattern,
                               std::vector<size_t> &results) {
-  PzBufferSPtr buffer = core_ ? core_->get_buffer() : nullptr;
-
-  // TODO : Use results
-  results.push_back(0); // To suppress warning
-
+  PzBufferSPtr buffer = core_ ? core_->pz_buffer_sptr : nullptr;
   if (buffer == nullptr || pattern.empty()) {
     PzError::report_error(PzErrorType::PZ_INVALID_INPUT,
                           "Invalid buffer or empty pattern");
     return false;
   }
 
+  const std::string &text = buffer->get_raw_text();
+  if (text.empty()) return false;
+
   try {
-    // TODO: Implement actual regex search
-    return true;
+    Tokenizer   tokenizer(pattern);
+    auto        tokens  = tokenizer.tokenize();
+    auto        postfix = Postfix::convert(tokens);
+    NfaBuilder  builder;
+    State      *start   = builder.build(postfix);
+    NfaMatcher  matcher(start);
+
+    auto matches = matcher.find_all(text);
+    results.clear();
+    for (const auto &m : matches) {
+      results.push_back(static_cast<size_t>(m.start_pos));
+    }
+    return !results.empty();
   } catch (const std::exception &e) {
     PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
                           "Regex analysis failed: " + std::string(e.what()));
     return false;
+  }
+}
+
+int PzAnalysisRegex::count(const std::string &pattern) {
+  PzBufferSPtr buffer = core_ ? core_->pz_buffer_sptr : nullptr;
+  if (buffer == nullptr || pattern.empty()) {
+    PzError::report_error(PzErrorType::PZ_INVALID_INPUT,
+                          "Invalid buffer or empty pattern");
+    return 0;
+  }
+
+  const std::string &text = buffer->get_raw_text();
+  if (text.empty()) return 0;
+
+  try {
+    Tokenizer   tokenizer(pattern);
+    auto        tokens  = tokenizer.tokenize();
+    auto        postfix = Postfix::convert(tokens);
+    NfaBuilder  builder;
+    State      *start   = builder.build(postfix);
+    NfaMatcher  matcher(start);
+
+    return static_cast<int>(matcher.find_all(text).size());
+  } catch (const std::exception &e) {
+    PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
+                          "Regex count failed: " + std::string(e.what()));
+    return -1;
+  }
+}
+
+std::vector<int> PzAnalysisRegex::locate(const std::string &pattern) {
+  PzBufferSPtr buffer = core_ ? core_->pz_buffer_sptr : nullptr;
+  if (buffer == nullptr || pattern.empty()) {
+    PzError::report_error(PzErrorType::PZ_INVALID_INPUT,
+                          "Invalid buffer or empty pattern");
+    return {};
+  }
+
+  const std::string &text = buffer->get_raw_text();
+  if (text.empty()) return {};
+
+  try {
+    Tokenizer   tokenizer(pattern);
+    auto        tokens  = tokenizer.tokenize();
+    auto        postfix = Postfix::convert(tokens);
+    NfaBuilder  builder;
+    State      *start   = builder.build(postfix);
+    NfaMatcher  matcher(start);
+
+    auto             matches = matcher.find_all(text);
+    std::vector<int> positions;
+    positions.reserve(matches.size());
+    for (const auto &m : matches) {
+      positions.push_back(m.start_pos);
+    }
+    return positions;
+  } catch (const std::exception &e) {
+    PzError::report_error(PzErrorType::PZ_ANALYSIS_FAILED,
+                          "Regex locate failed: " + std::string(e.what()));
+    return {};
   }
 }
 

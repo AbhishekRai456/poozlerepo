@@ -10,9 +10,10 @@ libpz_util = static_library(
   'pz_util',
   libpz_util_sources,
   include_directories : inc_dir,
+  dependencies : [libpz_exact_dep, libpz_regex_dep],
 )
-
 
 libpz_util_dep = declare_dependency(
   link_with : libpz_util,
+  dependencies : [libpz_exact_dep, libpz_regex_dep],
 )

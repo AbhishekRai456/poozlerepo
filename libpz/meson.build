@@ -1,10 +1,12 @@
 inc_dir = include_directories('include')
 
+subdir('exact')   # must be before util
+subdir('regex')
 subdir('util')
 
 libpz_dep = declare_dependency(
   include_directories : inc_dir,
-  dependencies : [libpz_util_dep],
+  dependencies : [libpz_util_dep, libpz_exact_dep, libpz_regex_dep],
 )
 
 install_headers(
