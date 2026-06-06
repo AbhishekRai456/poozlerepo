@@ -42,3 +42,11 @@ test_findall_exe = executable(
   dependencies : [libpz_regex_dep],
 )
 test('NFA FindAll Tests', test_findall_exe)
+
+test_extra_exe = executable(
+  'test_extra',
+  'tests/test_3_extra.cpp',
+  include_directories : inc_dir,
+  dependencies : [libpz_regex_dep],
+)
+test('NFA Extra Edge Case Tests', test_extra_exe)

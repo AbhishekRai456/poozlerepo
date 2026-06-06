@@ -1,12 +1,30 @@
 inc_dir = include_directories('include')
 
-subdir('exact')   # must be before util
-subdir('regex')
 subdir('util')
+subdir('regex')
+subdir('exact')
 
+libpz_sources = [
+  'exact/Alphabet.cpp',
+  'exact/FMIndex.cpp',
+  'regex/NfaBuilder.cpp',
+  'regex/NfaMatcher.cpp',
+  'regex/RegexPostfix.cpp',
+  'regex/RegexTokenizer.cpp'
+]
+
+# static_library takes sources and includes, no dependencies here
+libpz_core = static_library(
+  'pz_core',
+  libpz_sources,
+  include_directories : inc_dir
+)
+
+# The dependency object links the core and util together for consumers
 libpz_dep = declare_dependency(
   include_directories : inc_dir,
-  dependencies : [libpz_util_dep, libpz_exact_dep, libpz_regex_dep],
+  link_with : [libpz_core],
+  dependencies : [libpz_util_dep]
 )
 
 install_headers(

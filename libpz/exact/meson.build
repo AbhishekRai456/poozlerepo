@@ -15,3 +15,5 @@ libpz_exact_dep = declare_dependency(
   link_with : libpz_exact,
   include_directories : inc_dir,
 )
+
+subdir('tests')

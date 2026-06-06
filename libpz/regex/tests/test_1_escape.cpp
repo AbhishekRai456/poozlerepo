@@ -1,5 +1,5 @@
-#include "NfaMatcher.hpp"
 #include "Nfa.hpp"
+#include "NfaMatcher.hpp"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -28,21 +28,25 @@ std::string escape_helper(const std::string &text) {
 
 void run_escape_test(const EscapeTestCase &test) {
   total_tests++;
-  std::string result = escape_helper(test.input);
-  bool success = (result == test.expected_output);
-
-  if (success) {
-    passed_tests++;
-    std::cout << "[SUCCESS] ";
-  } else {
+  try {
+    std::string result = escape_helper(test.input);
+    bool success = (result == test.expected_output);
+    if (success) {
+      passed_tests++;
+      std::cout << "[SUCCESS] ";
+    } else {
+      failed_tests++;
+      std::cout << "[FAILURE] ";
+    }
+    std::cout << std::setw(40) << std::left << test.description
+              << " | Input: " << std::setw(30) << std::left << test.input
+              << " | Expected: " << std::setw(30) << std::left
+              << test.expected_output << " | Got: " << result << "\n";
+  } catch (const std::exception &e) {
     failed_tests++;
-    std::cout << "[FAILURE] ";
+    std::cout << "[FAILURE] " << std::setw(40) << std::left << test.description
+              << " | EXCEPTION: " << e.what() << "\n";
   }
-
-  std::cout << std::setw(40) << std::left << test.description
-            << " | Input: " << std::setw(30) << std::left << test.input
-            << " | Expected: " << std::setw(30) << std::left
-            << test.expected_output << " | Got: " << result << "\n";
 }
 
 int main() {

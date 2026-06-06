@@ -12,8 +12,8 @@ struct MatchResult {
   std::vector<std::pair<st32, st32>>
       captures; // Group captures: (start, end) pairs
 
-  MatchResult(const MatchResult&) = default;
-  MatchResult& operator=(const MatchResult&) = default;
+  MatchResult(const MatchResult &) = default;
+  MatchResult &operator=(const MatchResult &) = default;
 
   // constructor
   MatchResult(bool matched_, st32 start_pos_, st32 end_pos_,

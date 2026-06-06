@@ -51,57 +51,72 @@ static std::vector<int> build_suffix_array(const std::string &input) {
 }
 
 int FMIndex::calculate_rank_interval(int text_length) {
-  int num = 32 * ALPHABET_SIZE;
-  int den = 1000000000 - (40 * ALPHABET_SIZE);
-  if (den <= 0) {
-    return 80;
+  // checkpoint interval proportional to log2(text_length)
+  if (text_length <= 0)
+    return 32;
+  int log2_len = 0;
+  int tmp = text_length;
+  while (tmp > 1) {
+    tmp >>= 1;
+    ++log2_len;
   }
-  int res = num / den;
-  if (res == 0) {
-    return 1;
-  }
-  return res;
+
+  // Using a more aggressive interval (log2 * 2) to keep memory footprint low
+  int interval = std::max(16, log2_len * 2);
+  return interval;
 }
 
 FMIndex::FMIndex(const std::string &word) {
   std::string text;
+  text.reserve(word.size() + 1);
   for (auto c : word) {
-    text = text + get_position(c);
+    text += get_position(c);
   }
-  text = text + RESERVED_SYMBOLS["EOB"];
+  text += RESERVED_SYMBOLS["EOB"];
   pre_build(text, (int)text.size(), calculate_rank_interval(text.size()), 1);
 }
 
 FMIndex::FMIndex(std::string_view text_view) {
   std::string text;
+  text.reserve(text_view.size() + 1);
   for (auto c : text_view) {
-    text = text + get_position(c);
+    text += get_position(c);
   }
-  text = text + RESERVED_SYMBOLS["EOB"];
+  text += RESERVED_SYMBOLS["EOB"];
   pre_build(text, (int)text.size(), calculate_rank_interval(text.size()), 1);
 }
 
 FMIndex::FMIndex(const std::vector<std::string> &words) {
   std::string text;
-  for (auto word : words) {
+  size_t total = 0;
+  for (const auto &word : words)
+    total += word.size() + 1;
+  text.reserve(total + 1);
+
+  for (const auto &word : words) {
     for (auto c : word) {
-      text = text + get_position(c);
+      text += get_position(c);
     }
-    text = text + RESERVED_SYMBOLS["CONCATNATION"];
+    text += RESERVED_SYMBOLS["CONCATNATION"];
   }
-  text = text + RESERVED_SYMBOLS["EOB"];
+  text += RESERVED_SYMBOLS["EOB"];
   pre_build(text, (int)text.size(), calculate_rank_interval(text.size()), 1);
 }
 
 FMIndex::FMIndex(std::vector<std::string> &&words) {
   std::string text;
-  for (auto word : words) {
+  size_t total = 0;
+  for (const auto &word : words)
+    total += word.size() + 1;
+  text.reserve(total + 1);
+
+  for (const auto &word : words) {
     for (auto c : word) {
-      text = text + get_position(c);
+      text += get_position(c);
     }
-    text = text + RESERVED_SYMBOLS["CONCATNATION"];
+    text += RESERVED_SYMBOLS["CONCATNATION"];
   }
-  text = text + RESERVED_SYMBOLS["EOB"];
+  text += RESERVED_SYMBOLS["EOB"];
   pre_build(text, (int)text.size(), calculate_rank_interval(text.size()), 1);
 }
 

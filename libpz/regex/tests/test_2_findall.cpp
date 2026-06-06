@@ -1,5 +1,5 @@
-#include "NfaMatcher.hpp"
 #include "NfaBuilder.hpp"
+#include "NfaMatcher.hpp"
 #include "RegexPostfix.hpp"
 #include "RegexTokenizer.hpp"
 #include <chrono>

@@ -8,10 +8,4 @@ project('poozle', 'cpp',
 
 subdir('libpz')
 subdir('cli')
-
-smoke_exe = executable(
-  'smoke_test',
-  'smoke_test.cpp',
-  dependencies : [libpz_dep],
-)
-test('Smoke Test', smoke_exe)
+subdir('bench')

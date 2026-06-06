@@ -180,7 +180,7 @@ bool PzBuffer::load_from_file(const std::string &filename) {
   // Read file line-by-line and tokenize
   while (std::getline(file, line)) {
     load_text(line, false);
-    text = text + line;
+    text += line + '\n';
   }
   fm_index = FMIndex(text);
   apply_storage_flag();
@@ -233,9 +233,9 @@ bool PzBuffer::load_from_file_chunked(const std::string &filename,
     }
 
     load_text(combined_chunk, false);
-    text = text + combined_chunk;
+    text += combined_chunk;
   }
-  text = text + carry_over;
+  text += carry_over;
 
   // After the loop, process any remaining content in carry_over
   if (!carry_over.empty()) {

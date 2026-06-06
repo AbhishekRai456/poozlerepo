@@ -1,0 +1,1 @@
+option('with_baselines', type : 'boolean', value : false, description : 'Enable RE2/PCRE2 benchmarks')
